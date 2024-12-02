@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ai-gateway-cfg-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    # Change repoURL to point to your clone of this repo
+    # repoURL: https://github.com/<my-profile-name>/solo-blog-ai-gateway-argo
+    repoURL: https://github.com/jameshbarton/solo-blog-ai-gateway-argo
+    targetRevision: HEAD
+    # The path specifies where config files for this Application will live in the repo
+    path: cfg
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: gloo-system
+  # We're explicitly setting the syncPolicy to be empty, so we can use the
+  # Argo UI to more easily see the impact of incremental changes in our configuration.  
+  syncPolicy: {} 

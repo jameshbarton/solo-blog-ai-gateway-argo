@@ -2,10 +2,6 @@
 
 echo "Setup Gloo AI Gateway prerequisites"
 
-# argocd repo server check
-# echo "checking that argocd-repo-server is ready before deploying wave"
-# $SCRIPT_DIR/tools/wait-for-rollout.sh deployment argocd-repo-server argocd 5
-
 # Check to see if license key variable was passed through, if not prompt for key
 if [[ ${license_key} == "" ]]
   then
@@ -45,4 +41,4 @@ type: Opaque
 EOF
 
 echo "Installing Gateway API CRDs"
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.0.0/standard-install.yaml
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.1.0/standard-install.yaml
