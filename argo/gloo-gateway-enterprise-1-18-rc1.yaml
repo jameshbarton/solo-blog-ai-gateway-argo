@@ -1,102 +1,92 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: gloo-gateway-enterprise-helm
-  namespace: argocd
+  name: gloo-gateway-enterprise-helm # Name of the Argo CD Application resource
+  namespace: argocd # Namespace where Argo CD is installed
   finalizers:
-  - resources-finalizer.argocd.argoproj.io/solo-io
+  - resources-finalizer.argocd.argoproj.io/solo-io # Ensures proper cleanup of resources managed by Argo CD
 spec:
   destination:
-    namespace: gloo-system
-    server: https://kubernetes.default.svc
-  project: default
+    namespace: gloo-system # Target namespace in the Kubernetes cluster where the application will be deployed
+    server: https://kubernetes.default.svc # Specifies the Kubernetes API server address (cluster internal)
+  project: default # Associates this application with the 'default' project in Argo CD
   source:
-    chart: gloo-ee
+    chart: gloo-ee # Defines the Helm chart to use for deploying Gloo Gateway
     helm:
-      skipCrds: false
+      skipCrds: false # Ensures required Custom Resource Definitions (CRDs) are installed by the Helm chart
       values: |
-        create_license_secret: false
+        create_license_secret: false # Assumes the Gloo Gateway license secret is pre-provisioned
         gloo:
-          license_secret_name: license
+          license_secret_name: license # Specifies the name of the Gloo Gateway license secret
           kubeGateway:
-            # Enable K8s Gateway integration
-            enabled: true
+            enabled: true # Activates Kubernetes Gateway API support in Gloo
           gatewayProxies:
             gatewayProxy:
-              disabled: true
-              healthyPanicThreshold: 0
+              disabled: true # Prevents deployment of the default Gateway Proxy
+              healthyPanicThreshold: 0 # Configures health-check behavior for Gateway
               gatewaySettings:
-                # Disable the default Edge Gateway CRs from being created
-                enabled: false
-                disableGeneratedGateways: true
+                enabled: false # Disables creation of default Gateway CRs
+                disableGeneratedGateways: true # Prevents auto-generation of gateway resources
               service:
-                type: ClusterIP
+                type: ClusterIP # Exposes the proxy internally within the cluster
           gateway:
-            persistProxySpec: true
-            logLevel: info
+            persistProxySpec: true # Retains the current proxy configuration during upgrades
+            logLevel: info # Sets the log level for Gateway operations
             validation:
-              allowWarnings: true
-              alwaysAcceptResources: false
+              allowWarnings: true # Permits warnings during resource validation
+              alwaysAcceptResources: false # Rejects invalid resources during validation
           gloo:
-            logLevel: info
-            # To simplify the demo, we disable any features that are affected by leader election
-            # In Gloo Gateway, this is just status reporting, but still we do this to be safe
-            disableLeaderElection: true
+            logLevel: info # Configures the Gloo Gateway log level to 'info'
+            disableLeaderElection: true # Simplifies demo by disabling leader election
             deployment:
-              replicas: 1
+              # Deploy only a single replica of the Gloo control plane. 
+              # Scaling the gateway almost never requires multiple control plane instances.
+              # It is far more common to replicate data path components like the proxy itself, or extauth and rate limiting services.
+              replicas: 1 
               customEnv:
-                # The portal plugin is disabled by default, so must explicitly enable it
-                - name: GG_PORTAL_PLUGIN
+                - name: GG_PORTAL_PLUGIN # Enables the Portal plugin for API management
                   value: "true"
-              livenessProbeEnabled: true
+              livenessProbeEnabled: true # Ensures a liveness probe is configured
           discovery:
-            # We don't need the discovery deployment for our Gloo Gateway demo
-            enabled: false
+            enabled: false # Disables the discovery component to simplify the deployment
           rbac:
-            namespaced: true
-            nameSuffix: gg-demo
+            namespaced: true # Restricts RBAC rules to the namespace level
+            nameSuffix: gg-demo # Appends a suffix to RBAC resource names
           settings:
-            # Expose the Control Plane Admin API (port 10010 on Gloo)
-            devMode: true
+            devMode: true # Enables development mode and exposes the Admin API on port 10010
         observability:
-          enabled: true
+          enabled: true # Activates monitoring features
         prometheus:
-          # setting to false will disable prometheus, removing it from Gloo's chart dependencies
-          enabled: true
+          enabled: true # Installs Prometheus for metrics collection
         grafana:
-          # setting to false will disable grafana, removing it from Gloo's chart dependencies
-          defaultInstallationEnabled: true
+          defaultInstallationEnabled: true # Deploys Grafana with default settings
           grafana.ini:
             auth.anonymous:
-              enabled: true
+              enabled: true # Allows anonymous access to Grafana dashboards
             server:
-              root_url: https://*/grafana/
-              serve_from_sub_path: true
-        # This demo does not deal with Gloo Federation, so we disable the components to simplify the installation
+              root_url: https://*/grafana/ # Configures Grafana's base URL
+              serve_from_sub_path: true # Serves Grafana from a sub-path
         gloo-fed:
-          enabled: false
-          create_license_secret: false
+          enabled: false # Disables Gloo Federation to simplify this demo
+          create_license_secret: false # Assumes no license secret is required for federation
           glooFedApiserver:
-            enable: false
+            enable: false # Disables the Gloo Federation API server
         gateway-portal-web-server:
-          # Disable the sub-chart for the Portal webserver
-          enabled: false
+          enabled: false # Disables the Portal web server for simplicity
         global:
           extensions:
-            # Rate-Limit Configuration
             rateLimit:
-              enabled: true
+              enabled: true # Enables the rate-limiting feature
               deployment:
-                logLevel: debug
-            # Ext-Auth Configuration
+                logLevel: debug # Configures detailed logging for rate-limiting
             extAuth:
-              enabled: true
-              requestTimeout: 5s
+              enabled: true # Enables external authentication functionality
+              requestTimeout: 5s # Sets the timeout for authentication requests
               deployment:
-                logLevel: debug
-    repoURL: http://storage.googleapis.com/gloo-ee-helm
-    targetRevision: 1.18.0-rc1
+                logLevel: debug # Enables detailed logging for authentication operations
+    repoURL: http://storage.googleapis.com/gloo-ee-helm # Specifies the repository URL for the Helm chart
+    targetRevision: 1.18.0-rc1 # Version of Gloo Gateway being installed (release candidate 1 of version 1.18.0)
   syncPolicy:
     automated:
-      prune: true # Specifies if resources should be pruned during auto-syncing ( false by default ).
-      selfHeal: true # Specifies if partial app sync should be executed when resources are changed only in target Kubernetes cluster and no git change detected ( false by default ).
+      prune: true # Removes resources from the cluster that are no longer defined in the Git repository
+      selfHeal: true # Automatically corrects configuration drift between the cluster and the Git repository
