@@ -44,8 +44,8 @@ spec:
               # It is far more common to replicate data path components like the proxy itself, or extauth and rate limiting services.
               replicas: 1 
               customEnv:
-                - name: GG_PORTAL_PLUGIN # Enables the Portal plugin for API management
-                  value: "true"
+                - name: GG_PORTAL_PLUGIN # Disables the Portal plugin for this exercise
+                  value: "false"
               livenessProbeEnabled: true # Ensures a liveness probe is configured
           discovery:
             enabled: false # Disables the discovery component to simplify the deployment
