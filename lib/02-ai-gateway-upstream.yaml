@@ -1,0 +1,16 @@
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  labels:
+    app: gloo
+  name: gemini
+  namespace: gloo-system
+spec:
+  ai:
+    gemini:
+      model: gemini-1.5-flash
+      apiVersion: v1beta
+      authToken:
+        secretRef:
+          name: gemini-secret
+          namespace: gloo-system
