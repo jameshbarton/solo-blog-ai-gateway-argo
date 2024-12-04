@@ -1,0 +1,29 @@
+apiVersion: gateway.solo.io/v1
+kind: VirtualHostOption # Defines the resource type, used to configure settings at the virtual host level in Gloo Gateway
+metadata:
+  name: inline-jwt-provider
+  namespace: gloo-system 
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway # Specifies that the VirtualHostOption applies to a Gateway resource
+    name: ai-gateway # Name of the target Gateway to which this configuration will be applied
+    namespace: gloo-system # Namespace of the target Gateway
+  options:
+    jwt: # Configures JSON Web Token (JWT) settings to enforce authentication
+      providers:
+        selfminted: # Defines a JWT provider named 'selfminted'
+          issuer: solo.io # Specifies the trusted issuer of JWTs for this provider
+          jwks: 
+            local: # Indicates that the JWKS (JSON Web Key Set) is provided inline
+              # Public key used to validate JWT signatures from the trusted issuer
+              key: |
+                -----BEGIN PUBLIC KEY-----
+                MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAskFAGESgB22iOsGk/UgX
+                BXTmMtd8R0vphvZ4RkXySOIra/vsg1UKay6aESBoZzeLX3MbBp5laQenjaYJ3U8P
+                QLCcellbaiyUuE6+obPQVIa9GEJl37GQmZIMQj4y68KHZ4m2WbQVlZVIw/Uw52cw
+                eGtitLMztiTnsve0xtgdUzV0TaynaQrRW7REF+PtLWitnvp9evweOrzHhQiPLcdm
+                fxfxCbEJHa0LRyyYatCZETOeZgkOHlYSU0ziyMhHBqpDH1vzXrM573MQ5MtrKkWR
+                T4ZQKuEe0Acyd2GhRg9ZAxNqs/gbb8bukDPXv4JnFLtWZ/7EooKbUC/QBKhQYAsK
+                bQIDAQAB
+                -----END PUBLIC KEY----- 
