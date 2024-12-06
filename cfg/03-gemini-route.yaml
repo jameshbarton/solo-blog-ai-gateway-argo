@@ -1,0 +1,25 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute # Specifies the resource type, which routes HTTP traffic in a Gateway API implementation
+metadata:
+  name: gemini-route
+  namespace: gloo-system
+spec:
+  parentRefs:
+    - name: ai-gateway # References the Gateway resource named 'ai-gateway' that will process this route
+      namespace: gloo-system # Specifies the namespace of the parent Gateway
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix # Matches requests where the path starts with the specified prefix
+        value: /gemini # Routes any HTTP request with a path starting with '/gemini'
+    filters:
+    - type: URLRewrite # Applies a URL rewrite filter to modify the request path
+      urlRewrite:
+        path:
+          type: ReplaceFullPath # Specifies that the full path of the request should be replaced
+          replaceFullPath: /v1/chat/completions # Rewrites the incoming request path to '/v1/chat/completions'
+    backendRefs:
+    - name: gemini # Routes requests to a backend named 'gemini'
+      namespace: gloo-system # Specifies the namespace of the backend
+      group: gloo.solo.io # Identifies the API group for the backend resource, indicating it’s managed by Gloo
+      kind: Upstream # Specifies the type of the backend as an 'Upstream', a Gloo-specific abstraction for routing to services

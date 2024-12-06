@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    # Change repoURL to point to your clone of this repo
+    # CHANGE repoURL TO POINT TO YOUR CLONE OF THIS REPO
     # repoURL: https://github.com/<my-profile-name>/solo-blog-ai-gateway-argo
     repoURL: https://github.com/jameshbarton/solo-blog-ai-gateway-argo
     targetRevision: HEAD
